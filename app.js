@@ -2,7 +2,8 @@ require("dotenv").config();
 const express = require("express");
 const ejs = require("ejs");
 const mongoose = require("mongoose");
-const encrypt = require("mongoose-encryption");
+// const encrypt = require("mongoose-encryption");
+const md5 = require("md5");
 
 const app = express();
 
@@ -11,9 +12,6 @@ app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 
 const keys = require(__dirname + "/keys");
-
-console.log(process.env.SECRET);
-console.log(process.env.SECRET2);
 
 mongoose.connect(
   keys.MongodbLocalURI,
@@ -29,10 +27,11 @@ const userSchema = new mongoose.Schema({
   password: String
 });
 
-userSchema.plugin(encrypt, {
-  secret: process.env.SECRET,
-  encryptedFields: ["password"]
-});
+// // mongoose-encryption
+// userSchema.plugin(encrypt, {
+//   secret: process.env.SECRET,
+//   encryptedFields: ["password"]
+// });
 
 const User = mongoose.model("User", userSchema);
 
@@ -47,7 +46,7 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   const newUser = new User({
     email: req.body.username,
-    password: req.body.password
+    password: md5(req.body.password)
   });
   newUser.save((err, savedUser) => {
     res.redirect("/secrets");
@@ -62,7 +61,7 @@ app.post("/login", (req, res) => {
   User.findOne({ email: req.body.username }, (err, foundUser) => {
     if (err) throw err;
     if (foundUser) {
-      if (req.body.password === foundUser.password) {
+      if (md5(req.body.password) === foundUser.password) {
         return res.redirect("/secrets");
       } else {
         return res.redirect("/login");
