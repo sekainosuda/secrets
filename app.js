@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const ejs = require("ejs");
 const mongoose = require("mongoose");
@@ -10,6 +11,9 @@ app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 
 const keys = require(__dirname + "/keys");
+
+console.log(process.env.SECRET);
+console.log(process.env.SECRET2);
 
 mongoose.connect(
   keys.MongodbLocalURI,
@@ -26,7 +30,7 @@ const userSchema = new mongoose.Schema({
 });
 
 userSchema.plugin(encrypt, {
-  secret: "This is a secret string",
+  secret: process.env.SECRET,
   encryptedFields: ["password"]
 });
 
